@@ -13,17 +13,18 @@ const authorization = (req, res, next) => {
   let jwtSecretKey = process.env.JWT_SECRET_KEY
   const token = req.cookies.token
   if (!token) {
-    return res.sendStatus(403)
+    return res.render('forbidden').status(403)
   }
   try {
-    const data = jwt.verify(token, jwtSecretKey)
-    req.id = data.id
-    req.name = data.first_name + " " + data.last_name
+    const userData = jwt.verify(token, jwtSecretKey)
+    req.id = userData.id
+    req.first_name = userData.first_name
+    req.last_name = userData.last_name
     return next()
   } catch {
-    return res.sendStatus(403);
+    return render('forbidden').sendStatus(403)
   }
-}
+};
 
 
 // param can be event or ressource
@@ -34,7 +35,7 @@ router.get('/:param', authorization, async(req, res, next) => {
     let requestedList = await query(sqlQuery)
     res.render(requestedParam, {items: requestedList})
   } catch(err) {
-      const error = new Error("Error! Something went wrongg.");
+      const error = new Error("Error! Something went wrong.");
       return next(error);
   }
 })

@@ -14,11 +14,9 @@ app.engine('mustache', hoganMiddleware.__express)
 app.use(express.static(path.join(__dirname, 'public')))
 
 // import routes
-const index = require('./routes/index')
 const api = require('./routes/api')
 const loginApi = require('./routes/login')
 // set routes
-app.use('/', index)
 app.use('/home', api)
 app.use('/', loginApi)
 

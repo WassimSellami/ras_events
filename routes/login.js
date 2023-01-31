@@ -18,16 +18,16 @@ const authorization = (req, res, next) => {
     let jwtSecretKey = process.env.JWT_SECRET_KEY
     const token = req.cookies.token
     if (!token) {
-      return res.sendStatus(403)
+      return res.render('forbidden').status(403)
     }
     try {
-      const data = jwt.verify(token, jwtSecretKey)
-      req.id = data.id
-      req.name = data.first_name + " " + data.last_name
-      console.log(data)
+      const userData = jwt.verify(token, jwtSecretKey)
+      req.id = userData.id
+      req.first_name = userData.first_name
+      req.last_name = userData.last_name
       return next()
     } catch {
-      return res.sendStatus(403);
+      return render('forbidden').sendStatus(403)
     }
   };
 
@@ -43,20 +43,15 @@ router.post('/login', async (req, res, next) => {
     } catch {
         message = "Please verify your credentials !"
         return res.render("login", {message: message})
-        // const error = new Error("Error! Something went wrong.");
-        // return next(error);
     }
     if (existingUser.length==0){
         message = "Please verify your credentials !"
         return res.render("login", {message: message})
-        // const error = Error("Wrong details please check at once");
-        // return next(error);
     }
     if(existingUser[0].password != reqPassword){
         message = "Please verify your credentials !"
         return res.render("login", {message: message})
-        // const error = Error("Wrong details please check at once");
-        // return next(error);
+
     }
     let token;
     let user = existingUser[0];
@@ -75,12 +70,14 @@ router.post('/login', async (req, res, next) => {
         return next(error);
     }
     sendEmail("User Login", user.first_name+" "+user.last_name);
-    return res.
-    cookie("token", token, {
+    req.name = user.first_name    
+    res
+    .cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-    }).status(200)
-    .render("home", {user_id: userData.first_name})
+    })
+    .status(200)
+    .redirect('/home')
 })
 
 
@@ -90,8 +87,18 @@ router.get("/logout", authorization,  (req, res) => {
     return res
       .clearCookie("token")
       .status(200)
-    .render("login", null)
+    .redirect("/")
   });
 
+
+//  Index page: login
+router.get('/', (req, res) => {
+  res.render('login', null)
+})
+
+// Home page needs authorization.
+router.get("/home", authorization,(req, res) => {
+  res.render('home', {name: req.first_name})
+})
 
 module.exports = router
