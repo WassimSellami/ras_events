@@ -81,7 +81,7 @@ router.post('/login', async (req, res, next) => {
 })
 
 
-// Logout: removing cookie.
+// Logout: remove cookie and redirect to login page
 router.get("/logout", authorization,  (req, res) => {
     sendEmail("User Logout", req.name);
     return res
